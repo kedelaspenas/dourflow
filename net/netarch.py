@@ -67,6 +67,7 @@ class YoloArchitecture(object):
     def __init__(self):
 
         self.in_model_name = YoloParams.IN_MODEL
+        self.backend = YoloParams.BACKEND
         self.plot_name = YoloParams.ARCH_FNAME
 
     def get_model(self):
@@ -104,18 +105,48 @@ class YoloArchitecture(object):
             
         
     def weights_to_model(self, in_path, out_path):
-        yolo_model = self._yolo_v2_architecture()
+        yolo_model = self._tiny_yolo_v2_architecture()
+        if YoloParams.BACKEND == 'Full Yolo':
+            yolo_model = self._yolo_v2_architecture()
 
         try:
+            print(in_path)
             yolo_model.load_weights(in_path)
         
         except IOError as e:
             print('File for pre-trained weights not found.')
-
-        yolo_model.save(out_path)
+        if out_path:
+            yolo_model.save(out_path)
         return yolo_model
 
+    def _tiny_yolo_v2_architecture(self):
+        input_image = Input(shape=(YoloParams.INPUT_SIZE, YoloParams.INPUT_SIZE, 3))
 
+        # Layer 1
+        x = Conv2D(16, (3,3), strides=(1,1), padding='same', name='conv_1', use_bias=False)(input_image)
+        x = BatchNormalization(name='norm_1')(x)
+        x = LeakyReLU(alpha=0.1)(x)
+        x = MaxPooling2D(pool_size=(2, 2))(x)
+
+        # Layer 2 - 5
+        for i in range(0,4):
+            x = Conv2D(32*(2**i), (3,3), strides=(1,1), padding='same', name='conv_' + str(i+2), use_bias=False)(x)
+            x = BatchNormalization(name='norm_' + str(i+2))(x)
+            x = LeakyReLU(alpha=0.1)(x)
+            x = MaxPooling2D(pool_size=(2, 2))(x)
+
+        # Layer 6
+        x = Conv2D(512, (3,3), strides=(1,1), padding='same', name='conv_6', use_bias=False)(x)
+        x = BatchNormalization(name='norm_6')(x)
+        x = LeakyReLU(alpha=0.1)(x)
+        x = MaxPooling2D(pool_size=(2, 2), strides=(1,1), padding='same')(x)
+
+        for i in range(0,2):
+            x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_' + str(i+7), use_bias=False)(x)
+            x = BatchNormalization(name='norm_' + str(i+7))(x)
+            x = LeakyReLU(alpha=0.1)(x)
+
+        return Model(input_image, x)  
 
     def _yolo_v2_architecture(self):
         # Parse from cfg!

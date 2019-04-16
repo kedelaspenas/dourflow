@@ -11,7 +11,8 @@ argparser = argparse.ArgumentParser(
 argparser.add_argument(
     'action',
     help='what to do: \'train\', \'validate\', \'cam\' '
-    'or pass a video, image file/dir.')
+    'or pass a video, image file/dir.',
+    default='validate')
 
 argparser.add_argument(
     '-m',
@@ -47,6 +48,11 @@ argparser.add_argument(
         help='video output stored as gif also',
         action='store_true')
 
+argparser.add_argument(
+        '-b',
+        '--backend',
+        help='yolo backend',
+        default='Tiny Yolo')
 
 args = argparser.parse_args()
 
@@ -83,9 +89,10 @@ class YoloParams(object):
     if action in ['genw', 'generate_weights']:
         assert args.weight_file, "Need to pass weight file if generating model."
         WEIGHT_FILE = args.weight_file
-    elif action == 'cams':
+    elif action == 'cam':
         WEBCAM_OUT = 'cam_out.mp4'
         YOLO_MODE = 'cam'
+        WEIGHT_FILE = args.weight_file
     elif action in ['genp', 'generate_priors']:
         current_anchors_path = config['config_path']['anchors']
         GEN_ANCHORS_PATH = os.path.join(os.path.dirname(current_anchors_path),
@@ -119,6 +126,7 @@ class YoloParams(object):
 
     # Model    
     IN_MODEL = args.model
+    BACKEND = args.backend
         
     OUT_MODEL_NAME = config['train']['out_model_name']
     ARCH_FNAME = config['config_path']['arch_plotname']

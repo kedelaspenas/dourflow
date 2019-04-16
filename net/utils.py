@@ -112,18 +112,17 @@ def space_to_depth_x2(x):
     return tf.space_to_depth(x, block_size=2)
 
 
-def draw_boxes(image_in, info):
-    image = image_in.copy()
+def draw_boxes(image, info):
     image_h, image_w, _ = image.shape
 
     boxes, scores, labels = info
     color_mod = 255
 
-    for i in range(len(boxes)):
-        xmin = int(boxes[i][0]*image_w)
-        ymin = int(boxes[i][1]*image_h)
-        xmax = int(boxes[i][2]*image_w)
-        ymax = int(boxes[i][3]*image_h)  
+    for b in boxes:
+        xmin = int(b[0]*image_w)
+        ymin = int(b[1]*image_h)
+        xmax = int(b[2]*image_w)
+        ymax = int(b[3]*image_h)  
 
         if scores is None:
             #text = "%s"%(labels[i])
@@ -132,7 +131,7 @@ def draw_boxes(image_in, info):
         else:
             text = "%s (%.1f%%)"%(labels[i], 100*scores[i])
 
-        cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (color_mod,255,0), 2)
+        cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (color_mod,255,0), -2)
 
         cv2.putText(image, 
                     text, 

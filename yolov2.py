@@ -36,7 +36,7 @@ class YoloV2(object):
 
     def run(self, **kwargs):
 
-        self.model = self.yolo_arch.get_model()
+        self.model = self.yolo_arch.get_model() #self.yolo_arch.weights_to_model(YoloParams.WEIGHT_FILE, None)
         
         self.inf_model = YoloInferenceModel(self.model)
 
